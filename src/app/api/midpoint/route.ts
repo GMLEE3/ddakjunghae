@@ -405,10 +405,11 @@ export async function POST(request: NextRequest) {
         }
 
         // 폴백: 직선거리 기반 계산 (후보역도 포함)
-        // 직선거리 → 예상 대중교통 시간 환산 (평균 시속 25km/h 기준, 도보/대기 추가)
+        // 직선거리 → 예상 대중교통 시간 환산 (평균 시속 40km/h 기준, 도보/대기 10분)
+        // 지하철 표정속도 고려하여 더 현실적인 값으로 조정 (신분당선 등 고려)
         const estimateTransitTime = (distanceKm: number): number => {
             if (distanceKm < 1) return 5;
-            return Math.round(distanceKm / 25 * 60 + 10); // 이동시간 + 도보/대기 10분
+            return Math.round(distanceKm / 40 * 60 + 10); // 이동시간 + 도보/대기 10분
         };
 
         // 상위 5개 역을 후보로 포함
