@@ -404,38 +404,74 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // 폴백: 직선거리 기반 계산 (후보 없이)
-        const distanceResult = findOptimalMidpoint(origins);
-        const station = distanceResult.station;
+        // 폴백: 직선거리 기반 계산 (후보역도 포함)
+        // 직선거리 → 예상 대중교통 시간 환산 (평균 시속 25km/h 기준, 도보/대기 추가)
+        const estimateTransitTime = (distanceKm: number): number => {
+            if (distanceKm < 1) return 5;
+            return Math.round(distanceKm / 25 * 60 + 10); // 이동시간 + 도보/대기 10분
+        };
 
-        const maxDistance = Math.max(...distanceResult.distances);
-        const minDistance = Math.min(...distanceResult.distances);
-        const maxDifference = Math.round((maxDistance - minDistance) * 10) / 10;
+        // 상위 5개 역을 후보로 포함
+        const topStations = stationsWithScore.slice(0, 5);
+        const distanceCandidates = topStations.map((s, idx) => {
+            const distances = origins.map(o =>
+                calculateDistance(o, { lat: s.station.lat, lng: s.station.lng })
+            );
+            const times = distances.map(d => estimateTransitTime(d));
+            const maxTime = Math.max(...times);
+
+            return {
+                station: {
+                    name: s.station.name,
+                    address: s.station.address,
+                    line: s.station.line,
+                    lat: s.station.lat,
+                    lng: s.station.lng,
+                },
+                times: times.map((t: number, i: number) => ({
+                    originIndex: i + 1,
+                    minutes: t,
+                })),
+                maxTime,
+                isRecommended: idx === 0, // 첫 번째가 최적
+            };
+        });
+
+        const bestCandidate = distanceCandidates[0];
+        const maxDifference = bestCandidate
+            ? Math.max(...bestCandidate.times.map(t => t.minutes)) - Math.min(...bestCandidate.times.map(t => t.minutes))
+            : 0;
         let fairnessScore = '편차있음';
-        if (maxDifference < 2) fairnessScore = '균등';
-        else if (maxDifference < 5) fairnessScore = '보통';
+        if (maxDifference < 10) fairnessScore = '균등';
+        else if (maxDifference < 20) fairnessScore = '보통';
 
         return NextResponse.json({
             success: true,
             data: {
                 calculationMethod: '직선거리',
-                coordinates: { lat: station.lat, lng: station.lng },
-                nearestStation: {
-                    name: station.name,
-                    address: station.address,
-                    line: station.line,
-                    distance: 0,
-                },
+                coordinates: bestCandidate
+                    ? { lat: bestCandidate.station.lat, lng: bestCandidate.station.lng }
+                    : { lat: origins[0].lat, lng: origins[0].lng },
+                nearestStation: bestCandidate
+                    ? {
+                        name: bestCandidate.station.name,
+                        address: bestCandidate.station.address,
+                        line: bestCandidate.station.line,
+                        distance: 0,
+                    }
+                    : null,
                 distanceInfo: {
-                    fromOrigins: distanceResult.distances.map((distance: number, index: number) => ({
-                        index: index + 1,
-                        value: Math.round(distance * 10) / 10,
-                        unit: 'km',
-                    })),
+                    fromOrigins: bestCandidate
+                        ? bestCandidate.times.map((t: { originIndex: number; minutes: number }) => ({
+                            index: t.originIndex,
+                            value: t.minutes,
+                            unit: '분',
+                        }))
+                        : [],
                     maxDifference,
                     fairnessScore,
                 },
-                candidates: [], // 직선거리 폴백시 후보 없음
+                candidates: distanceCandidates,
             },
         });
     } catch (error) {
