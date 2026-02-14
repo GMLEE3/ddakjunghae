@@ -1,0 +1,37 @@
+{
+  "name": "ddakjunghae",
+  "version": "1.0.0",
+  "description": "AI 기반 지능형 모임 장소 추천 서비스",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "nextjs",
+    "ai",
+    "recommendation",
+    "meeting-place"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/matter-js": "^0.20.2",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.24",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.1",
+    "framer-motion": "^12.23.26",
+    "matter-js": "^0.20.0",
+    "next": "^16.1.1",
+    "postcss": "^8.5.6",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3"
+  }
+}

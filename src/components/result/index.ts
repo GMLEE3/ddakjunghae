@@ -1,0 +1,1 @@
+export { MidpointDisplay } from './MidpointDisplay';
