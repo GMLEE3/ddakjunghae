@@ -1,3 +1,53 @@
+// AI 추천 타입 (룰렛 컴포넌트용)
+export interface AIRecommendation {
+    type: string;
+    name?: string;
+    description?: string;
+    [key: string]: unknown;
+}
+
+// 모임 컨텍스트 모드
+export type ContextMode = 'company' | 'friends' | 'romantic';
+
+// 컨텍스트 모드 정보 (상수용)
+export interface ContextModeInfo {
+    id: string;
+    label: string;
+    emoji: string;
+    description: string;
+    keywords: string[];
+    color: string;
+}
+
+// 추천 타입 정보
+export interface RecommendationType {
+    id: string;
+    label: string;
+    emoji: string;
+    description: string;
+}
+
+// 식당 정보
+export interface Restaurant {
+    id: string;
+    name: string;
+    category: string;
+    address: string;
+    roadAddress: string;
+    telephone: string;
+    link: string;
+    imageUrl?: string;
+    keywords: string[];
+    coordinates: { lat: number; lng: number };
+}
+
+// 검색 API 응답
+export interface SearchResponse {
+    success: boolean;
+    data?: Restaurant[];
+    error?: string;
+}
+
 // 위치 관련 타입
 export interface Location {
     id: string;
